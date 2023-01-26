@@ -9,8 +9,8 @@ import streamlit as st
 import datetime as dt
 import pandas as pd
 
-# Import local lib
-import helper.binance_api as ba
+# pip install python-binance
+from binance.client import Client
 
 # Read-only key
 api_key \
@@ -19,7 +19,7 @@ api_secret \
     = 'TcylGKbkCroyYvNTCQFoQhZOq0abvts81BWfpMZIb9Fo6Wm1sXtKGVGzXJaRtmWz'
 
 client \
-    = ba.Client(api_key, api_secret)
+    = Client(api_key, api_secret)
 
 exchange_info \
     = client.get_exchange_info()
