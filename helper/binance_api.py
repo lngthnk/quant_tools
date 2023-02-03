@@ -59,12 +59,6 @@ list_of_symbols \
                             in list_of_symbols_info]
                            )))
 
-symbol = 'BTCUSDT'
-
-klines_1yr = client.get_historical_klines(symbol, '1d', start_str = dt.datetime(2022, 1, 1).strftime('%Y-%m-%d'), end_str = dt.datetime(2023, 1, 1).strftime('%Y-%m-%d'))
-
-
-
 column_names = ['open_time', 
                 'open', 
                 'high', 
@@ -78,9 +72,17 @@ column_names = ['open_time',
                 'taker_buy_quote_asset_volume', 
                 'unused_field_ignore']
 
-df = pd.DataFrame(klines,columns=column_names)
-
-
+def get_data_1d(symbol: str, str_start_date = None, str_end_date = None):
+    klines = client.get_historical_klines(symbol, 
+                                          '1d', 
+                                          start_str = str_start_date, 
+                                          end_str = str_end_date)
+    # Ignore last row to make [start_date,end_date)
+    df = pd.DataFrame(klines, columns = column_names)[0:-1]
+    df['open_time'] = pd.to_datetime(df['open_time'],unit='ms')
+    df = df.rename(columns = {'open_time': 'date'})
+    df = df.set_index('date')
+    return df[['open', 'high', 'low', 'close', 'volume']]
 
 
 
