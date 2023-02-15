@@ -3,5 +3,5 @@ pandas
 plotly
 numpy
 stockstats
-python-binance
+openpyxl
 yfinance
