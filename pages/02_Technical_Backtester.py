@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from stockstats import wrap
 
-import helper.binance_api as ba
+# import helper.binance_api as ba
 import helper.yahoo_api as ya
 
 df_of_symbols_set = pd.read_excel('https://github.com/phat-ap/quant_tools/blob/main/helper/set_symbol_list.xlsx?raw=true')
@@ -18,7 +18,8 @@ list_of_symbols_set = df_of_symbols_set['symbol'].to_list()
 @st.cache_data
 def get_list_of_symbols(exchange: str):
     if exchange == "Binance":
-        return ba.list_of_symbols
+        pass
+        # return ba.list_of_symbols
     elif exchange == "SET":
         return list_of_symbols_set
     else:
@@ -27,7 +28,8 @@ def get_list_of_symbols(exchange: str):
 @st.cache_data
 def get_data_1d(exchange: str, symbol: str):
     if exchange == "Binance":
-        return ba.get_data_1d(symbol).astype(float)
+        pass
+        # return ba.get_data_1d(symbol).astype(float)
     elif exchange == "SET":
         return ya.get_data_1d(symbol).astype(float)
     else:
@@ -54,7 +56,8 @@ sb_exchange \
                    )
 
 if sb_exchange == "Binance":
-    list_of_symbols = ba.list_of_symbols
+    # list_of_symbols = ba.list_of_symbols
+    pass 
 elif sb_exchange == "SET":
     list_of_symbols = list_of_symbols_set
 else:
