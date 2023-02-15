@@ -5,7 +5,6 @@ Created on Wed Jan 25 14:27:23 2023
 @author: phata
 """
 
-import datetime as dt
 import pandas as pd
 
 # pip install python-binance
