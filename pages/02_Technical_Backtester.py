@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 from stockstats import wrap
 
-# import helper.binance_api as ba
 import helper.binance_api as ba
 import helper.yahoo_api as ya
 
@@ -51,7 +50,7 @@ st.write('Technical Backtester')
 
 sb_exchange \
     = st.selectbox("Exchange",
-                   ("Binance", "SET")
+                   ("SET", )
                    )
 
 if sb_exchange == "Binance":
