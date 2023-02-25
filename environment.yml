@@ -4,16 +4,17 @@ dependencies:
   - scipy
   - pandas
   - matplotlib
-  - cvxpy
   - scikit-learn
   - statsmodels
-  - arch
   - XlsxWriter
   - networkx
   - astropy
   - pybind11
   - streamlit
-  - stockstats
   - openpyxl
-  - yfinance
-  - riskfolio-lib
+  - pip:
+    - riskfolio-lib
+    - stockstats
+    - arch
+    - cvxpy
+    - yfinance
