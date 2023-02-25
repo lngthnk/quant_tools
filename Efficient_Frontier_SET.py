@@ -26,7 +26,16 @@ def get_data_1d_SET(symbol: str, int_start_year = None, int_end_year = None):
 '''
 cols = st.columns(5)
 disabled = False
-for i in range(10):
+for i in range(5):
+    if i > 0 and st.session_state[f'stock_{i-1}'] == '':
+        disabled = True
+    cols[i%5].selectbox(f'Stock {i+1}', 
+                        [''] + list_of_symbols_set, 
+                        key = f'stock_{i}', 
+                        disabled = disabled
+                        )
+cols = st.columns(5)
+for i in range(5, 10):
     if i > 0 and st.session_state[f'stock_{i-1}'] == '':
         disabled = True
     cols[i%5].selectbox(f'Stock {i+1}', 
