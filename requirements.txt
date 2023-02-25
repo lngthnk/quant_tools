@@ -5,3 +5,5 @@ numpy
 stockstats
 openpyxl
 yfinance
+matplotlib
+riskfolio
