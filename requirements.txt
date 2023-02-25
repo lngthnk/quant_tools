@@ -6,5 +6,5 @@ stockstats
 openpyxl
 yfinance
 matplotlib==3.2.2
-riskfolio-lib
 pybind11
+riskfolio-lib
