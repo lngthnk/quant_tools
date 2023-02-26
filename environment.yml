@@ -1,0 +1,20 @@
+name: quanttools
+dependencies:
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - statsmodels
+  - XlsxWriter
+  - networkx
+  - astropy
+  - pybind11
+  - streamlit
+  - openpyxl
+  - pip:
+    - riskfolio-lib
+    - stockstats
+    - arch
+    - cvxpy
+    - yfinance
