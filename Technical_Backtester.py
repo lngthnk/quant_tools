@@ -10,6 +10,10 @@ from stockstats import wrap
 
 import helper.yahoo_api as ya
 
+'''
+# Technical Backtester
+'''
+
 @st.cache_data
 def func():
     df_of_symbols_set = pd.read_excel('https://github.com/phat-ap/quant_tools/blob/main/helper/set_symbol_list.xlsx?raw=true')
@@ -43,13 +47,13 @@ def func_dict_indicators():
                        {'window': 14}
                    },
            'MACD': {'var_name': 'macd',
-                    'n_params': 2,
+                    'n_params': 0,  # turned off
                     'default': 
                        {'short': 12,
                         'long': 26}
                    },
            'MACD signal': {'var_name': 'macds',
-                    'n_params': 3,
+                    'n_params': 0,  # turned off
                     'default': 
                        {'short': 12,
                         'long': 26,
@@ -59,10 +63,6 @@ def func_dict_indicators():
            }
     return dict_indicators
 dict_indicators = func_dict_indicators()
-
-
-
-st.write('Technical Backtester')
 
 '''
 ### Choose stock
@@ -141,6 +141,11 @@ df = filter_df(df, int(sb_start_year), int(sb_end_year))
 '''
 ### Choose indicators
 '''
+sb_and_or_or \
+    = st.selectbox("AND or OR",
+                   ("AND", "OR")
+                   )
+
 if 'n_rules' not in st.session_state:
     st.session_state['n_rules'] = 1
 # Add rule
@@ -157,6 +162,7 @@ st.button('Remove last rule', on_click=remove_rule, disabled = disabled_remove)
 dict_rules = {}    
 
 for i_rule in range(st.session_state['n_rules']):
+    st.write(f'Rule {i_rule+1}')
     if f'indic_{i_rule}a' not in st.session_state:
         st.session_state[f'indic_{i_rule}a'] = 'Last close'
     if f'indic_{i_rule}b' not in st.session_state:
@@ -171,8 +177,8 @@ for i_rule in range(st.session_state['n_rules']):
     dict_rules[i_rule] \
         = {}    
     
-    dict_rules[i_rule][f'indic_a'] \
-        = cols[0].selectbox(f'Indicator a',
+    dict_rules[i_rule]['indic_a'] \
+        = cols[0].selectbox('Indicator a',
                             dict_indicators.keys(), 
                             key = f'indic_{i_rule}a')
     
@@ -183,13 +189,13 @@ for i_rule in range(st.session_state['n_rules']):
             dict_rules[i_rule][f'param_a_{label}'] \
                 = cols[i+1].number_input(label, value = default, format = '%d', key = f'param_{i_rule}a_{label}')
             
-    dict_rules[i_rule][f'sign'] \
-        = cols[1+st.session_state[f'n_param_{i_rule}_a']].selectbox(f'Sign',
+    dict_rules[i_rule]['sign'] \
+        = cols[1+st.session_state[f'n_param_{i_rule}_a']].selectbox('Sign',
                                                               ('>=', '>', '==', '<', '<='), 
                                                               key = f'sign_{i_rule}')
     
-    dict_rules[i_rule][f'indic_b'] \
-        = cols[2+st.session_state[f'n_param_{i_rule}_a']].selectbox(f'Indicator {i_rule}b',
+    dict_rules[i_rule]['indic_b'] \
+        = cols[2+st.session_state[f'n_param_{i_rule}_a']].selectbox('Indicator b',
                       dict_indicators.keys(), 
                       key = f'indic_{i_rule}b')
     
@@ -200,31 +206,159 @@ for i_rule in range(st.session_state['n_rules']):
             dict_rules[i_rule][f'param_b_{label}'] \
                 = cols[i+3+st.session_state[f'n_param_{i_rule}_a']].number_input(label, value = default, format = '%d', key = f'param_{i_rule}b_{label}')
     
-    st.write(dict_rules[i_rule])
+    # st.write(dict_rules[i_rule])
 
-'''
-### Read rules
-'''
-StockDataFrame = df
-def run_rule_indic_1(dict_rules, i_rule, ab):
+# Read rules
+def run_rule_indic(StockDataFrame, dict_rules, i_rule, ab):
+    if dict_rules[i_rule][f'indic_{ab}'] == 'Last close':
+        return StockDataFrame['close'].rename(f'{i_rule}{ab}')
+    if dict_rules[i_rule][f'indic_{ab}'] == 'Value':
+        return dict_rules[i_rule][f'param_{ab}_value']
+    if dict_rules[i_rule][f'indic_{ab}'] in ['SMA', 'EMA']:
+        str_var_name = dict_indicators[dict_rules[i_rule][f'indic_{ab}']]['var_name']
+        str_window = str(dict_rules[i_rule][f'param_{ab}_window'])
+        return StockDataFrame[f'close_{str_window}_{str_var_name}'].rename(f'{i_rule}{ab}')
     if dict_rules[i_rule][f'indic_{ab}'] == 'RSI':
-        return StockDataFrame['rsi_' + str(dict_rules[i_rule][f'param_{ab}_window'])]
-    if dict_rules[i_rule][f'indic_{ab}'] == 'MACD':
-        StockDataFrame.MACD_EMA_SHORT = dict_rules[i_rule][f'param_{ab}_short']
-        StockDataFrame.MACD_EMA_LONG = dict_rules[i_rule][f'param_{ab}_long']
-        return StockDataFrame['macd']
-    if dict_rules[i_rule][f'indic_{ab}'] == 'MACD signal':
-        StockDataFrame.MACD_EMA_SHORT = dict_rules[i_rule][f'param_{ab}_short']
-        StockDataFrame.MACD_EMA_LONG = dict_rules[i_rule][f'param_{ab}_long']
-        StockDataFrame.MACD_EMA_SIGNAL = dict_rules[i_rule][f'param_{ab}_signal']
-        return StockDataFrame['macds']
+        return StockDataFrame['rsi_' + str(dict_rules[i_rule][f'param_{ab}_window'])].rename(f'{i_rule}{ab}')
+    if dict_rules[i_rule][f'indic_{ab}'] in ['MACD', 'MACD signal']:
+        return StockDataFrame[dict_indicators[dict_rules[i_rule][f'indic_{ab}']]['var_name']].rename(f'{i_rule}{ab}')
     else:
         pass
-# งงงงงงง
-st.write(df.MACD_EMA_SHORT, df.MACD_EMA_LONG, df.MACD_EMA_SIGNAL)
-siga = run_rule_indic_1(dict_rules, 0, 'a')
-st.write(df)
-st.write(df.MACD_EMA_SHORT, df.MACD_EMA_LONG, df.MACD_EMA_SIGNAL)
-sigb = run_rule_indic_1(dict_rules, 0, 'b')
-st.write(sigb)
-st.write(df.MACD_EMA_SHORT, df.MACD_EMA_LONG, df.MACD_EMA_SIGNAL)
+    
+def run_rule(StockDataFrame, dict_rules, i_rule):
+    if dict_rules[i_rule]['sign'] == '>=':
+        signal = run_rule_indic(StockDataFrame, dict_rules, i_rule, 'a') >= run_rule_indic(StockDataFrame, dict_rules, i_rule, 'b')
+    if dict_rules[i_rule]['sign'] == '>':
+        signal = run_rule_indic(StockDataFrame, dict_rules, i_rule, 'a') > run_rule_indic(StockDataFrame, dict_rules, i_rule, 'b')
+    if dict_rules[i_rule]['sign'] == '==':
+        signal = run_rule_indic(StockDataFrame, dict_rules, i_rule, 'a') == run_rule_indic(StockDataFrame, dict_rules, i_rule, 'b')
+    if dict_rules[i_rule]['sign'] == '<':
+        signal = run_rule_indic(StockDataFrame, dict_rules, i_rule, 'a') < run_rule_indic(StockDataFrame, dict_rules, i_rule, 'b')
+    if dict_rules[i_rule]['sign'] == '<=':
+        signal = run_rule_indic(StockDataFrame, dict_rules, i_rule, 'a') <= run_rule_indic(StockDataFrame, dict_rules, i_rule, 'b')
+    else:
+        pass
+    return signal.rename(f'{i_rule}')
+df_signals = pd.concat([run_rule(df, dict_rules, i_rule) 
+                        for i_rule 
+                        in range(st.session_state['n_rules'])
+                        ],
+                       axis = 1
+                       )
+# st.write(df_signals)
+
+# Combine rules
+
+signal = df_signals['0']
+for col in df_signals.columns:
+    if sb_and_or_or == 'AND': signal = signal & df_signals[col]
+    elif sb_and_or_or == 'OR': signal = signal | df_signals[col]
+# st.write(pd.concat([df_signals, signal.rename(sb_and_or_or)], axis = 1))
+
+# BT and Plot
+
+df_returns = pd.concat([df['log-ret'].rename('bah'), 
+                        (signal.shift(1).replace(False,0) * df['log-ret']).rename('strategy')
+                       ],
+                       axis=1)
+
+
+import plotly.graph_objects as go
+    
+x = df_returns.cumsum().index
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=x,
+    y=df_returns.cumsum().bah,
+    name = 'bah'
+))
+fig.add_trace(go.Scatter(
+    x=x,
+    y=df_returns.cumsum().strategy,
+    name = 'strategy'
+))
+
+st.write('Perf compared to buy-and-hold')
+st.write(fig)
+
+# https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
+def correlation_from_covariance(covariance):
+    v = np.sqrt(np.diag(covariance))
+    outer_v = np.outer(v, v)
+    correlation = covariance / outer_v
+    correlation[covariance == 0] = 0
+    return correlation
+
+import plotly.express as px
+
+fig = px.imshow(correlation_from_covariance(df_signals.cov()),
+                color_continuous_scale=px.colors.diverging.RdBu,
+                color_continuous_midpoint=0,
+                text_auto=True)
+
+st.write('Corr between signals')
+st.write(fig)
+
+import plotly.graph_objects as go
+
+fig = go.Figure()
+fig.add_trace(go.Histogram(x=df_returns.bah))
+fig.add_trace(go.Histogram(x=(signal.shift(1).replace(False,np.nan) * df['log-ret'])))
+
+# Overlay both histograms
+fig.update_layout(barmode='overlay')
+# Reduce opacity to see both histograms
+fig.update_traces(opacity=0.75)
+st.write('Returns distribution compared to buy-and-hold')
+st.write(fig)
+
+# BT
+def skewness(r):
+    """
+    Alternative to scipy.stats.skew()
+    Computes the skewness of the supplied Series or DataFrame
+    Returns a float or a Series
+    """
+    demeaned_r = r - r.mean()
+    # use the population standard deviation, so set dof=0
+    sigma_r = r.std(ddof=0)
+    exp = (demeaned_r**3).mean()
+    return exp/sigma_r**3
+def annualize_rets(r, periods_per_year):
+    """
+    Annualizes a set of returns
+    We should infer the periods per year
+    but that is currently left as an exercise
+    to the reader :-)
+    """
+    compounded_growth = (1+r).cumsum() # edited
+    n_periods = r.shape[0]
+    return compounded_growth**(periods_per_year/n_periods)-1
+def annualize_vol(r, periods_per_year):
+    """
+    Annualizes the vol of a set of returns
+    We should infer the periods per year
+    but that is currently left as an exercise
+    to the reader :-)
+    """
+    return r.std()*(periods_per_year**0.5)
+def sharpe_ratio(r, riskfree_rate, periods_per_year):
+    """
+    Computes the annualized sharpe ratio of a set of returns
+    """
+    # convert the annual riskfree rate to per period
+    rf_per_period = (1+riskfree_rate)**(1/periods_per_year)-1
+    excess_ret = r - rf_per_period
+    ann_ex_ret = annualize_rets(excess_ret, periods_per_year)
+    ann_vol = annualize_vol(r, periods_per_year)
+    return ann_ex_ret/ann_vol
+
+def bt_statistics(r: pd.Series):
+    return pd.DataFrame(
+        {"Skewness": skewness(r), 
+         "Annualize Vol": annualize_vol(r, 252), 
+         "Sharpe Ratio": sharpe_ratio(r, 0, 252)}).iloc[-1]
+
+st.write(pd.concat([bt_statistics(df_returns.bah).rename('bah'), bt_statistics(df_returns.strategy).rename('strategy')], axis = 1))
