@@ -255,33 +255,54 @@ for col in df_signals.columns:
     elif sb_and_or_or == 'OR': signal = signal | df_signals[col]
 # st.write(pd.concat([df_signals, signal.rename(sb_and_or_or)], axis = 1))
 
+
+
+
+
 # BT and Plot
 
-df_returns = pd.concat([df['log-ret'].rename('bah'), 
-                        (signal.shift(1).replace(False,0) * df['log-ret']).rename('strategy')
+
+'''
+### Results
+'''
+
+df_returns = pd.concat([((1 + df['close'].pct_change()).cumprod() - 1).rename('Buy-and-Hold'), 
+                        
+                        
+                        
+                        
+                        
+                        
+                        (1 + (signal.shift(1).replace(False,0) * df['close'].pct_change()).cumprod() - 1).rename('Strategy')
                        ],
                        axis=1)
 
 
+st.write(pd.concat([df, df_returns, df_signals],axis = 1))
+
 import plotly.graph_objects as go
     
-x = df_returns.cumsum().index
+x = df_returns.index
 
 fig = go.Figure()
 
 fig.add_trace(go.Scatter(
     x=x,
-    y=df_returns.cumsum().bah,
-    name = 'bah'
+    y=df_returns['Buy-and-Hold'],
+    name = 'Buy-and-Hold'
 ))
 fig.add_trace(go.Scatter(
     x=x,
-    y=df_returns.cumsum().strategy,
-    name = 'strategy'
+    y=df_returns.Strategy,
+    name = 'Strategy'
 ))
 
-st.write('Perf compared to buy-and-hold')
+fig.update_layout(title="Cumulative returns compared to buy-and-hold")
+
+
 st.write(fig)
+
+
 
 # https://gist.github.com/wiso/ce2a9919ded228838703c1c7c7dad13b
 def correlation_from_covariance(covariance):
@@ -313,52 +334,3 @@ fig.update_layout(barmode='overlay')
 fig.update_traces(opacity=0.75)
 st.write('Returns distribution compared to buy-and-hold')
 st.write(fig)
-
-# BT
-def skewness(r):
-    """
-    Alternative to scipy.stats.skew()
-    Computes the skewness of the supplied Series or DataFrame
-    Returns a float or a Series
-    """
-    demeaned_r = r - r.mean()
-    # use the population standard deviation, so set dof=0
-    sigma_r = r.std(ddof=0)
-    exp = (demeaned_r**3).mean()
-    return exp/sigma_r**3
-def annualize_rets(r, periods_per_year):
-    """
-    Annualizes a set of returns
-    We should infer the periods per year
-    but that is currently left as an exercise
-    to the reader :-)
-    """
-    compounded_growth = (1+r).cumsum() # edited
-    n_periods = r.shape[0]
-    return compounded_growth**(periods_per_year/n_periods)-1
-def annualize_vol(r, periods_per_year):
-    """
-    Annualizes the vol of a set of returns
-    We should infer the periods per year
-    but that is currently left as an exercise
-    to the reader :-)
-    """
-    return r.std()*(periods_per_year**0.5)
-def sharpe_ratio(r, riskfree_rate, periods_per_year):
-    """
-    Computes the annualized sharpe ratio of a set of returns
-    """
-    # convert the annual riskfree rate to per period
-    rf_per_period = (1+riskfree_rate)**(1/periods_per_year)-1
-    excess_ret = r - rf_per_period
-    ann_ex_ret = annualize_rets(excess_ret, periods_per_year)
-    ann_vol = annualize_vol(r, periods_per_year)
-    return ann_ex_ret/ann_vol
-
-def bt_statistics(r: pd.Series):
-    return pd.DataFrame(
-        {"Skewness": skewness(r), 
-         "Annualize Vol": annualize_vol(r, 252), 
-         "Sharpe Ratio": sharpe_ratio(r, 0, 252)}).iloc[-1]
-
-st.write(pd.concat([bt_statistics(df_returns.bah).rename('bah'), bt_statistics(df_returns.strategy).rename('strategy')], axis = 1))
