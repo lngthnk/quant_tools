@@ -12,6 +12,7 @@ dependencies:
   - pybind11
   - streamlit
   - openpyxl
+  - plotly
   - pip:
     - riskfolio-lib
     - stockstats
