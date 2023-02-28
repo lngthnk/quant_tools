@@ -9,6 +9,7 @@ import numpy as np
 from stockstats import wrap
 
 import helper.yahoo_api as ya
+import helper.btstats as btstats
 
 '''
 # Technical Backtester
@@ -149,14 +150,17 @@ sb_and_or_or \
 if 'n_rules' not in st.session_state:
     st.session_state['n_rules'] = 1
 # Add rule
+
+col1, col2 = st.columns(2)
+
 def add_rule():
     st.session_state['n_rules'] += 1
-st.button('Add a rule', on_click=add_rule)
+col1.button('Add a rule', on_click=add_rule)
 # Remove rule
 def remove_rule():
     st.session_state['n_rules'] -= 1
 disabled_remove = True if st.session_state['n_rules'] == 1 else False
-st.button('Remove last rule', on_click=remove_rule, disabled = disabled_remove)
+col2.button('Remove last rule', on_click=remove_rule, disabled = disabled_remove)
 
 # List of rules
 dict_rules = {}    
@@ -239,7 +243,7 @@ def run_rule(StockDataFrame, dict_rules, i_rule):
     else:
         pass
     return signal.rename(f'{i_rule}')
-df_signals = pd.concat([run_rule(df, dict_rules, i_rule) 
+df_signals = pd.concat([run_rule(df, dict_rules, i_rule).rename(f'Rule {i_rule+1}')
                         for i_rule 
                         in range(st.session_state['n_rules'])
                         ],
@@ -249,7 +253,7 @@ df_signals = pd.concat([run_rule(df, dict_rules, i_rule)
 
 # Combine rules
 
-signal = df_signals['0']
+signal = df_signals['Rule 1']
 for col in df_signals.columns:
     if sb_and_or_or == 'AND': signal = signal & df_signals[col]
     elif sb_and_or_or == 'OR': signal = signal | df_signals[col]
@@ -266,39 +270,47 @@ for col in df_signals.columns:
 ### Results
 '''
 
-df_returns = pd.concat([((1 + df['close'].pct_change()).cumprod() - 1).rename('Buy-and-Hold'), 
-                        
-                        
-                        
-                        
-                        
-                        
-                        (1 + (signal.shift(1).replace(False,0) * df['close'].pct_change()).cumprod() - 1).rename('Strategy')
-                       ],
+df_returns = pd.concat([df['close'].pct_change().rename('Buy-and-Hold'), 
+                        (signal.shift(1).replace(False,0) * df['close'].pct_change()).rename('Strategy')
+                         ],
                        axis=1)
 
 
-st.write(pd.concat([df, df_returns, df_signals],axis = 1))
+df_cumulative_returns = pd.concat([((1 + df['close'].pct_change()).cumprod() - 1).rename('Buy-and-Hold'), 
+                                   ((1 + signal.shift(1).replace(False,0) * df['close'].pct_change()).cumprod() - 1).rename('Strategy')
+                                   ],
+                                  axis=1
+                                  )
+
+
+st.write(pd.DataFrame(
+    {'Buy-and-Hold': btstats.btstats(df_returns['Buy-and-Hold']),
+     'Strategy': btstats.btstats(df_returns['Strategy'])
+     }))
+    
+
+
+# st.write(pd.concat([df, df_returns, df_signals],axis = 1))
 
 import plotly.graph_objects as go
     
-x = df_returns.index
+x = df_cumulative_returns.index
 
 fig = go.Figure()
 
 fig.add_trace(go.Scatter(
     x=x,
-    y=df_returns['Buy-and-Hold'],
+    y=df_cumulative_returns['Buy-and-Hold'],
     name = 'Buy-and-Hold'
 ))
 fig.add_trace(go.Scatter(
     x=x,
-    y=df_returns.Strategy,
+    y=df_cumulative_returns['Strategy'],
     name = 'Strategy'
 ))
 
 fig.update_layout(title="Cumulative returns compared to buy-and-hold")
-
+fig.update_layout(yaxis=dict(tickformat=".0%"))
 
 st.write(fig)
 
@@ -317,20 +329,28 @@ import plotly.express as px
 fig = px.imshow(correlation_from_covariance(df_signals.cov()),
                 color_continuous_scale=px.colors.diverging.RdBu,
                 color_continuous_midpoint=0,
-                text_auto=True)
+                text_auto='.3f')
+fig.update_layout(title="Correlation between each rules")
 
-st.write('Corr between signals')
 st.write(fig)
 
 import plotly.graph_objects as go
 
 fig = go.Figure()
-fig.add_trace(go.Histogram(x=df_returns.bah))
-fig.add_trace(go.Histogram(x=(signal.shift(1).replace(False,np.nan) * df['log-ret'])))
+fig.add_trace(go.Histogram(
+    x=df_returns['Buy-and-Hold'],
+    name='Buy-and-Hold',
+    xbins=dict(size=0.05)
+    ))
+fig.add_trace(go.Histogram(
+    x=signal.shift(1).replace(False,np.nan) * df_returns['Strategy'],
+    name='Strategy',
+    xbins=dict(size=0.05)
+    ))
 
 # Overlay both histograms
 fig.update_layout(barmode='overlay')
 # Reduce opacity to see both histograms
 fig.update_traces(opacity=0.75)
-st.write('Returns distribution compared to buy-and-hold')
+fig.update_layout(title="Distribution of returns compared to buy-and-hold")
 st.write(fig)
