@@ -353,12 +353,12 @@ fig = go.Figure()
 fig.add_trace(go.Histogram(
     x=df_returns['Buy-and-Hold'],
     name='Buy-and-Hold',
-    xbins=dict(size=0.05)
+    xbins=dict(size=0.025, start = round(df_returns.min().min() - df_returns.min().min()%.25,3), end = round(df_returns.max().max() - df_returns.max().max()%.25+.25,3))
     ))
 fig.add_trace(go.Histogram(
     x=signal.shift(1).replace(False,np.nan) * df_returns['Strategy'],
     name='Strategy',
-    xbins=dict(size=0.05)
+    xbins=dict(size=0.025, start = round(df_returns.min().min() - df_returns.min().min()%.25,3), end = round(df_returns.max().max() - df_returns.max().max()%.25+.25,3))
     ))
 
 # Overlay both histograms
@@ -366,4 +366,7 @@ fig.update_layout(barmode='overlay')
 # Reduce opacity to see both histograms
 fig.update_traces(opacity=0.75)
 fig.update_layout(title="Distribution of returns compared to buy-and-hold")
+fig.update_layout(xaxis_tickformat = '.1%')
+
+
 st.write(fig)
