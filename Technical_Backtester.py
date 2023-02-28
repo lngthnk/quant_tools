@@ -13,7 +13,20 @@ import helper.btstats as btstats
 
 '''
 # Technical Backtester
+
+We implemented simple backtesting tool for trading rules which are based on technical indicators. Our tool covers stocks in Thailand\'s SET market.
+
+This current version does not take into account the fees and bid-ask spreads associated with real trading. The purpose of this tool is to get an overview of the performance of the trading strategy itself.
+
+The libraries used are pandas, numpy, and stockstats.
+ 
 '''
+from PIL import Image
+import requests
+from io import BytesIO
+response = requests.get('https://images.pexels.com/photos/7567440/pexels-photo-7567440.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-7567440.jpg&fm=jpg&w=1280&h=853')
+image = Image.open(BytesIO(response.content))
+st.image(image)
 
 @st.cache_data
 def func():
@@ -66,7 +79,7 @@ def func_dict_indicators():
 dict_indicators = func_dict_indicators()
 
 '''
-### Choose stock
+### Choose a stock
 '''
 @st.cache_data
 def get_list_of_symbols(exchange: str):

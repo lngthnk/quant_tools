@@ -13,6 +13,8 @@ dependencies:
   - streamlit
   - openpyxl
   - plotly
+  - PIL
+  - requests
   - pip:
     - riskfolio-lib
     - stockstats
