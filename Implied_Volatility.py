@@ -22,7 +22,7 @@ Deviation of the market implied volatility from the model\'s calculation may be 
  
 '''
 
-@st.cache_data
+@st.cache_resource
 def get_ticker(symbol: str):
     return yf.Ticker(symbol)
 
