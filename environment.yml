@@ -21,4 +21,5 @@ dependencies:
     - arch
     - cvxpy
     - yfinance
+    - tensorflow
     - tf-quant-finance
