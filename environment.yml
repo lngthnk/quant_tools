@@ -1,5 +1,6 @@
 name: quanttools
 dependencies:
+  - pip
   - numpy
   - scipy
   - pandas
@@ -10,11 +11,11 @@ dependencies:
   - networkx
   - astropy
   - pybind11
-  - streamlit
   - openpyxl
   - plotly
   - requests
   - pip:
+    - streamlit
     - riskfolio-lib
     - stockstats
     - arch
