@@ -14,9 +14,12 @@ dependencies:
   - openpyxl
   - plotly
   - requests
+  - datetime
   - pip:
     - riskfolio-lib
     - stockstats
     - arch
     - cvxpy
     - yfinance
+    - tensorflow
+    - tf_quant_finance
